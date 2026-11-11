@@ -1,0 +1,10 @@
+# litellm.yaml
+model_list:
+  - model_name: chat
+    litellm_params: {model: openai/chat, api_base: http://localhost:8001/v1, api_key: none}
+  - model_name: judge                 # same model for now; point at a stronger one if you have it
+    litellm_params: {model: openai/chat, api_base: http://localhost:8001/v1, api_key: none}
+  - model_name: embed
+    litellm_params: {model: openai/embed, api_base: http://localhost:8002/v1, api_key: none}
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

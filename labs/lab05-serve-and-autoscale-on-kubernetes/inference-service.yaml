@@ -1,0 +1,12 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata: {name: qwen}
+spec:
+  predictor:
+    model:
+      modelFormat: {name: huggingface}
+      storageUri: hf://Qwen/Qwen2.5-7B-Instruct
+      args: ["--model_name=chat", "--backend=vllm", "--max-model-len=16384"]
+      resources:
+        requests: {cpu: "4", memory: 24Gi, nvidia.com/gpu: "1"}
+        limits:   {cpu: "4", memory: 24Gi, nvidia.com/gpu: "1"}

@@ -1,0 +1,31 @@
+# docker-compose.yml (images current in October 2026; pin what you test)
+services:
+  chat:
+    image: vllm/vllm-openai:v0.30.0
+    command: --model Qwen/Qwen2.5-7B-Instruct --served-model-name chat --max-model-len 16384
+             --gpu-memory-utilization 0.75
+             --enable-auto-tool-choice --tool-call-parser hermes
+    ipc: host
+    ports: ["127.0.0.1:8001:8000"]
+    volumes: ["~/.cache/huggingface:/root/.cache/huggingface"]
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, count: all, capabilities: [gpu]}]}}}
+  embed:
+    image: vllm/vllm-openai:v0.30.0
+    command: --model Qwen/Qwen3-Embedding-0.6B --served-model-name embed
+             --runner pooling --gpu-memory-utilization 0.15
+    ipc: host
+    ports: ["127.0.0.1:8002:8000"]
+    volumes: ["~/.cache/huggingface:/root/.cache/huggingface"]
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, count: all, capabilities: [gpu]}]}}}
+  db:
+    image: pgvector/pgvector:pg17
+    environment: {POSTGRES_USER: rag, POSTGRES_PASSWORD: rag, POSTGRES_DB: rag}
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]   # data survives a restart
+  gateway:
+    image: docker.litellm.ai/berriai/litellm:v1.103.10   # or a newer v1 tag from its releases page
+    command: --config /app/config.yaml --port 4000
+    environment: {LITELLM_MASTER_KEY: "${LITELLM_KEY}"}
+    volumes: ["./litellm.yaml:/app/config.yaml"]
+    network_mode: host
+volumes: {pgdata: {}}

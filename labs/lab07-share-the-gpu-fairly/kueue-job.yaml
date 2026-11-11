@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: gpu-burn-
+  namespace: team-a
+  labels: {kueue.x-k8s.io/queue-name: training}
+spec:
+  suspend: true                     # Kueue un-suspends it when quota is available
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: work
+        image: nvidia/cuda:13.0.3-base-ubuntu24.04
+        command: ["bash", "-c", "nvidia-smi -L; sleep 300"]
+        resources: {limits: {nvidia.com/gpu: 1}, requests: {cpu: "1", memory: 1Gi}}

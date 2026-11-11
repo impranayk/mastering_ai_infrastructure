@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: vllm, labels: {app: vllm}}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}              # one GPU: the old pod must release it first
+  selector: {matchLabels: {app: vllm}}
+  template:
+    metadata: {labels: {app: vllm}}
+    spec:
+      enableServiceLinks: false            # without it, the Service named vllm adds VLLM_PORT=tcp://...,
+                                           # which vLLM reads as its own setting and crashes
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:v0.30.0
+        args: ["--model", "Qwen/Qwen2.5-7B-Instruct", "--served-model-name", "chat",
+               "--max-model-len", "16384", "--gpu-memory-utilization", "0.90"]
+        env: [{name: HF_TOKEN, valueFrom: {secretKeyRef: {name: hf, key: token}}}]
+        ports: [{containerPort: 8000, name: http}]
+        resources:
+          limits: {nvidia.com/gpu: 1, memory: 40Gi}
+          requests: {cpu: "4", memory: 24Gi}
+        readinessProbe: {httpGet: {path: /health, port: 8000}, periodSeconds: 5}
+        startupProbe: {httpGet: {path: /health, port: 8000}, periodSeconds: 10, failureThreshold: 90}
+        volumeMounts:
+        - {name: cache, mountPath: /root/.cache/huggingface}
+        - {name: shm, mountPath: /dev/shm}
+      volumes:
+      - {name: cache, hostPath: {path: /data/hf-cache, type: DirectoryOrCreate}}
+      - {name: shm, emptyDir: {medium: Memory, sizeLimit: 8Gi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: vllm, labels: {app: vllm}}
+spec: {selector: {app: vllm}, ports: [{name: http, port: 8000, targetPort: 8000}]}

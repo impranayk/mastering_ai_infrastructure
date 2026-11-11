@@ -1,0 +1,14 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata: {name: vllm}
+spec:
+  scaleTargetRef: {name: vllm}
+  minReplicaCount: 1                       # keep one warm: cold starts take minutes
+  maxReplicaCount: 2                       # a second replica needs a second GPU (or slicing, Lab 7)
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://kube-prometheus-stack-prometheus.monitoring.svc:9090   # check: kubectl get svc -n monitoring
+      query: sum(vllm:num_requests_waiting{model_name="chat"})
+      threshold: "5"
+      activationThreshold: "1"
