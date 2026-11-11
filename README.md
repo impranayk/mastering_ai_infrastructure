@@ -50,6 +50,10 @@ Companion files for the book's sixteen hands-on labs (Part VII). Every file here
 
 Newer versions usually work but sometimes rename options. Check [UPDATES.md](UPDATES.md) before you start.
 
+## Found a mistake?
+
+Report it on the [book feedback page](https://drpranayjha.com/book-feedback) (no GitHub account needed) or open an issue here. Every report is read; confirmed ones are listed under Issues, and each correction goes into [UPDATES.md](UPDATES.md) and the next edition.
+
 ## Stay safe and keep the bill small
 
 - Never put your Hugging Face token in a file or a commit: the labs read it into an environment variable.
